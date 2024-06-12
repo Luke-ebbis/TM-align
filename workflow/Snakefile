@@ -5,16 +5,46 @@
 ## Rules
 ## -----
 ##
-
-onstart:
-    print("##### running pipeline  #####\n") 
-    # shell("mkdir -p jobs/printContent")
+VERSION = '20180426'
 
 # rule all:
 #
 rule all:
   input:
-    expand("results/output/{number}.txt", number = range(1, 10))
+    expand("results/dependencies/TMalign/bin/{programme}-{VERSION}", VERSION=VERSION,
+        programme=["TMalign", "MMalign", "TMscore"])
+
+
+
+rule compile_tmalign:
+  input:
+    "results/dependencies/TMalign/TMalign-{version}/{programme}.cpp"
+  output:
+    "results/dependencies/TMalign/bin/{programme}-{version}"
+  shell: "g++ -O3 -ffast-math -o {output} {input} -static"
+
+## download_tm_align
+rule download_tm_align:
+  conda:
+    "envs/utils.yml"
+  output:
+    "results/downloads/TMalign.tar.gz"
+  shell: "wget -O {output} 'https://zhanggroup.org/RNA-align/TMalign/TMalign.tar.gz'"
+
+rule unzip:
+  input:
+    "results/downloads/TMalign.tar.gz"
+  output:
+    "results/downloads/TMalign.tar"
+  shell: "gunzip -kd {input}"
+
+rule untar:
+  input:
+    "results/downloads/TMalign.tar.gz"
+  output:
+    directory("results/dependencies/TMalign")
+  shell:
+    "mkdir {output} -p; tar -xvzf {input} -C {output}"
 
 
 ## test:
