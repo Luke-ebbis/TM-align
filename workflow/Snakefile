@@ -16,12 +16,12 @@ rule all:
 
 
 
-rule compile_tmalign:
+rule compile:
   input:
-    "results/dependencies/TMalign/TMalign-{version}/{programme}.cpp"
+    "results/downloads/TMalign"
   output:
     "results/dependencies/TMalign/bin/{programme}-{version}"
-  shell: "g++ -O3 -ffast-math -o {output} {input} -static"
+  shell: "g++ -O3 -ffast-math -o {output} {input}/TMalign-{wildcards.version}/{wildcards.programme}.cpp -static"
 
 ## download_tm_align
 rule download_tm_align:
@@ -42,7 +42,7 @@ rule untar:
   input:
     "results/downloads/TMalign.tar.gz"
   output:
-    directory("results/dependencies/TMalign")
+    directory("results/downloads/TMalign")
   shell:
     "mkdir {output} -p; tar -xvzf {input} -C {output}"
 
