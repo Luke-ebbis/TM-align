@@ -1,0 +1,84 @@
+## <NAME>
+## 
+## DESCRIPTION
+## 
+## Rules
+## -----
+##
+
+onstart:
+    print("##### running pipeline  #####\n") 
+    # shell("mkdir -p jobs/printContent")
+
+# rule all:
+#
+rule all:
+  input:
+    expand("results/output/{number}.txt", number = range(1, 10))
+
+
+## test:
+##    A rule that makes a file and then sleeps for 10 seconds.
+rule test:
+  # threads: 8
+  output:
+    "results/output/{number}.txt"
+  shell:
+    """
+    echo "makeing {output}"
+    mkdir -p results/output;
+    touch {output}
+    sleep 10
+    """
+
+## help:
+##    Show the help.
+##
+rule help:
+  input: "workflow/Snakefile"
+  shell: "sed -n 's/^##//p' {input}"
+
+## clean:                     
+##    Clean all outputs from the results folder.
+##
+rule clean:
+  shell: "rm -rf results/*"
+
+## build_overview:            
+##    Print the directed acyclic graph.
+##
+rule build_overview:
+  output:
+    "results/method.{fileformat}"
+  shell:
+    """
+    snakemake -c 1 --forceall --dag | dot -T{wildcards.fileformat} > {output}
+    """
+
+rule install_easy_graph:
+  conda:
+    "envs/utils.yml"
+  output:
+    touch("results/checkpoints/install_easy_graph")
+  shell:
+    """
+    echo "Installing easy graph"
+    cpan -i App::cpanminus
+    cpanm Graph::Easy
+    """
+
+## build_overview_ascii:
+##    Prints the graph in ascii format.
+rule build_ascii_graph:
+  conda:
+    "envs/utils.yml"
+  input:
+    "results/checkpoints/install_easy_graph"
+  output:
+    "results/method-simple.ascii"
+  shell:
+    """
+    snakemake -c 1 --forceall --dag > out
+    graph-easy --from=dot --as_ascii out >  {output}
+    rm out
+    """
